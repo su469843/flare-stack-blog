@@ -56,18 +56,26 @@ const CommentEditorToolbar: React.FC<CommentEditorToolbarProps> = ({
   onLinkClick,
   onImageClick,
 }) => {
-  const { isBold, isItalic, isUnderline, isStrike, isCode, isLink } =
-    useEditorState({
-      editor,
-      selector: (ctx) => ({
-        isBold: ctx.editor.isActive("bold"),
-        isItalic: ctx.editor.isActive("italic"),
-        isUnderline: ctx.editor.isActive("underline"),
-        isStrike: ctx.editor.isActive("strike"),
-        isCode: ctx.editor.isActive("code"),
-        isLink: ctx.editor.isActive("link"),
-      }),
-    });
+  const states = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      // SSR / 编辑器未初始化时 ctx.editor 可能为 null
+      isBold: ctx.editor?.isActive("bold") ?? false,
+      isItalic: ctx.editor?.isActive("italic") ?? false,
+      isUnderline: ctx.editor?.isActive("underline") ?? false,
+      isStrike: ctx.editor?.isActive("strike") ?? false,
+      isCode: ctx.editor?.isActive("code") ?? false,
+      isLink: ctx.editor?.isActive("link") ?? false,
+    }),
+  });
+  const {
+    isBold = false,
+    isItalic = false,
+    isUnderline = false,
+    isStrike = false,
+    isCode = false,
+    isLink = false,
+  } = states ?? {};
 
   return (
     <div className="flex items-center gap-1 p-1 border border-border/20 rounded-sm bg-background/50 backdrop-blur-sm">

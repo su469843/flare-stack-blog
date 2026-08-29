@@ -34,6 +34,8 @@ export const CommentEditor = ({
     extensions: getCommentExtensions(),
     content: "",
     autofocus: autoFocus ? "end" : false,
+    // SSR 下先返回 null、挂载后再创建，避免服务端/客户端渲染不一致
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class:
@@ -42,14 +44,17 @@ export const CommentEditor = ({
     },
   });
 
-  const { isEmpty } = useEditorState({
+  const editorState = useEditorState({
     editor,
     selector: (ctx) => ({
-      isEmpty: ctx.editor.isEmpty,
+      // SSR / 编辑器未初始化时 ctx.editor 为 null，视为空内容
+      isEmpty: ctx.editor?.isEmpty ?? true,
     }),
   });
+  const isEmpty = editorState?.isEmpty ?? true;
 
   const openLinkModal = useCallback(() => {
+    if (!editor) return;
     const previousUrl = editor.getAttributes("link").href as string | undefined;
     setModalInitialUrl(previousUrl || "");
     setModalType("LINK");
@@ -61,7 +66,7 @@ export const CommentEditor = ({
   }, []);
 
   const handleSubmit = async () => {
-    if (isEmpty || isSubmitting) return;
+    if (!editor || isEmpty || isSubmitting) return;
 
     try {
       await onSubmit(editor.getJSON());
@@ -70,6 +75,11 @@ export const CommentEditor = ({
       // Error handled by parent hook
     }
   };
+
+  // SSR / 编辑器尚未初始化时渲染空内容，避免向工具栏等子组件传递空实例
+  if (!editor) {
+    return null;
+  }
 
   return (
     <div className="relative group/editor border border-border/10 rounded-sm bg-muted/5 transition-colors duration-300 hover:border-border/30 focus-within:border-border/50 focus-within:bg-background overflow-hidden">
