@@ -8,6 +8,7 @@ import { getImageDimensions } from "@/features/media/utils/image-dimensions";
 import {
   buildTransformOptions,
   getContentTypeFromKey,
+  parseRangeHeader,
 } from "@/features/media/utils/media.utils";
 import * as PostMediaRepo from "@/features/posts/data/post-media.data";
 import { CACHE_CONTROL } from "@/lib/constants";
@@ -19,7 +20,10 @@ export async function upload(
 ) {
   const { file } = input;
 
-  const dimensions = getImageDimensions(await file.arrayBuffer());
+  // 仅图片做尺寸嗅探；音视频跳过，避免把整个文件读进 Worker 内存
+  const dimensions = file.type.startsWith("image/")
+    ? getImageDimensions(await file.arrayBuffer())
+    : null;
   const width = dimensions?.width;
   const height = dimensions?.height;
 
@@ -133,7 +137,9 @@ export async function handleImageRequest(
   const searchParams = url.searchParams;
 
   const serveOriginal = async () => {
-    const object = await env.R2.get(key);
+    // 支持 Range 分段读取（音视频流式播放、拖动进度条）
+    const range = parseRangeHeader(request.headers.get("range"));
+    const object = await env.R2.get(key, range ? { range } : undefined);
     if (!object) {
       return new Response("Image not found", { status: 404 });
     }
@@ -147,6 +153,22 @@ export async function handleImageRequest(
     object.writeHttpMetadata(headers);
     headers.set("Content-Type", contentType);
     headers.set("ETag", object.httpEtag);
+    headers.set("Accept-Ranges", "bytes");
+
+    if (range && request.headers.get("range")) {
+      const size = object.size;
+      let start = 0;
+      let end = size - 1;
+      if ("suffix" in range) {
+        start = Math.max(0, size - range.suffix);
+        end = size - 1;
+      } else {
+        start = range.offset;
+        end = range.length !== undefined ? start + range.length - 1 : size - 1;
+      }
+      headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
+      return new Response(object.body, { status: 206, headers });
+    }
 
     return new Response(object.body, { headers });
   };
@@ -156,7 +178,10 @@ export async function handleImageRequest(
   const isLoop = viaHeader && /image-resizing/.test(viaHeader);
   const wantsOriginal = searchParams.get("original") === "true";
 
-  if (isLoop || wantsOriginal) {
+  // 2. 非图片文件（音视频等）不走 Cloudflare Images 变换管线，直接回源
+  const isImageKey = (getContentTypeFromKey(key) || "").startsWith("image/");
+
+  if (isLoop || wantsOriginal || !isImageKey) {
     return await serveOriginal();
   }
 

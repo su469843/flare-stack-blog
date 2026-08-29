@@ -861,7 +861,7 @@
     {
       "declarations": ["input maxSizeMb"],
       "match": {
-        "maxSizeMb=*": "支持 JPEG/JPG/PNG/WEBP/GIF (最大 {maxSizeMb}MB)"
+        "maxSizeMb=*": "支持 JPEG/JPG/PNG/WEBP/GIF (最大 {maxSizeMb}MB)，以及 MP3/FLAC 音频、MP4 视频 (最大 100MB)"
       }
     }
   ],
@@ -941,9 +941,9 @@
   "media_upload_log_error_no_data": "> ERROR: 没有数据包",
   "media_upload_log_stream_sending": "> UPLOAD_STREAM: 数据包发送中...",
   "media_upload_error_db": "媒体入库失败，请重试",
-  "media_validation_file_required": "请选择要上传的图片文件",
-  "media_validation_file_too_large": "文件大小不能超过 10MB",
-  "media_validation_file_invalid_type": "仅支持上传图片文件",
+  "media_validation_file_required": "请选择要上传的文件",
+  "media_validation_file_too_large": "文件大小超出限制（图片 10MB，音视频 100MB）",
+  "media_validation_file_invalid_type": "仅支持上传图片或 MP3/FLAC/MP4 音视频文件",
   "media_validation_key_required": "图片标识不能为空",
   "media_upload_fail": [
     {

@@ -1,4 +1,4 @@
-import { Check, Film, Image as ImageIcon } from "lucide-react";
+import { Check, Film, Image as ImageIcon, Music } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
 import { getOptimizedImageUrl } from "@/features/media/utils/media.utils";
 import { formatBytes } from "@/lib/utils";
@@ -128,8 +128,15 @@ const MediaCard = memo(
               />
             </>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              <Film size={24} strokeWidth={1} />
+            <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+              {asset.mimeType.startsWith("audio/") ? (
+                <Music size={24} strokeWidth={1} />
+              ) : (
+                <Film size={24} strokeWidth={1} />
+              )}
+              <span className="text-[10px] font-mono uppercase tracking-wider">
+                {asset.mimeType.split("/")[1]}
+              </span>
             </div>
           )}
         </div>

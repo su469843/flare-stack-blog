@@ -4,7 +4,7 @@ import type React from "react";
 import { useRef } from "react";
 import { createPortal } from "react-dom";
 import {
-  ACCEPTED_IMAGE_TYPES,
+  ACCEPTED_MEDIA_TYPES,
   MAX_FILE_SIZE,
 } from "@/features/media/media.schema";
 import { m } from "@/paraglide/messages";
@@ -32,7 +32,7 @@ function UploadModalInternal({
   onDrop,
 }: UploadModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const accept = ACCEPTED_IMAGE_TYPES.join(",");
+  const accept = ACCEPTED_MEDIA_TYPES.join(",");
   const maxSizeMb = Math.floor(MAX_FILE_SIZE / 1024 / 1024);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -8,8 +8,33 @@ export function getContentTypeFromKey(key: string): string | undefined {
     gif: "image/gif",
     svg: "image/svg+xml",
     avif: "image/avif",
+    mp3: "audio/mpeg",
+    flac: "audio/flac",
+    m4a: "audio/mp4",
+    mp4: "video/mp4",
   };
   return contentTypes[extension || ""];
+}
+
+/** 解析 Range 请求头为 R2 分段读取参数（用于音视频流式播放/拖动进度条） */
+export type R2ByteRange = { offset: number; length?: number } | { suffix: number };
+
+export function parseRangeHeader(
+  header: string | null,
+): R2ByteRange | undefined {
+  if (!header) return undefined;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!match) return undefined;
+  const [, startStr, endStr] = match;
+  if (startStr === "") {
+    if (endStr === "" || endStr === "0") return undefined;
+    return { suffix: Number(endStr) };
+  }
+  const start = Number(startStr);
+  if (endStr === "") return { offset: start };
+  const end = Number(endStr);
+  if (end < start) return undefined;
+  return { offset: start, length: end - start + 1 };
 }
 
 export function generateKey(fileName: string): string {

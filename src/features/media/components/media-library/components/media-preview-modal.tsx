@@ -11,6 +11,7 @@ import {
   Layout,
   Link2,
   Loader2,
+  Music,
   Pencil,
   Trash2,
   X,
@@ -169,11 +170,26 @@ export function MediaPreviewModal({
           <div className="absolute top-4 left-4 text-xs font-mono text-muted-foreground uppercase tracking-widest z-20">
             {m.media_preview_mode()}
           </div>
-          <img
-            src={activeAsset.url}
-            alt={activeAsset.fileName}
-            className="max-w-full max-h-full object-contain relative z-10 shadow-sm"
-          />
+          {activeAsset.mimeType.startsWith("audio/") ? (
+            <div className="w-full max-w-md relative z-10 flex flex-col items-center gap-4">
+              <div className="w-24 h-24 rounded-full bg-accent flex items-center justify-center text-accent-foreground">
+                <Music size={40} strokeWidth={1} />
+              </div>
+              <audio src={activeAsset.url} controls className="w-full" />
+            </div>
+          ) : activeAsset.mimeType.startsWith("video/") ? (
+            <video
+              src={activeAsset.url}
+              controls
+              className="max-w-full max-h-full relative z-10 shadow-sm"
+            />
+          ) : (
+            <img
+              src={activeAsset.url}
+              alt={activeAsset.fileName}
+              className="max-w-full max-h-full object-contain relative z-10 shadow-sm"
+            />
+          )}
         </div>
 
         {/* --- Metadata Sidebar (Right/Bottom) --- */}
