@@ -12,6 +12,8 @@ import { m } from "@/paraglide/messages";
 function ThemeSettingsContent() {
   switch (__THEME_NAME__) {
     case "default":
+    case "deepseek":
+      // deepseek 复用 default 主题的配置命名空间（navBarName / background）
       return <DefaultThemeSettings />;
     case "fuwari":
       return <FuwariThemeSettings />;

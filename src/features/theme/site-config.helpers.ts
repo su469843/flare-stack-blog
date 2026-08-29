@@ -8,6 +8,7 @@ export function getThemePreloadImages(siteConfig: SiteConfig): Array<string> {
         ? [siteConfig.theme.fuwari.homeBg]
         : [];
     case "default":
+    case "deepseek":
       return [
         siteConfig.theme.default.background?.homeImage,
         siteConfig.theme.default.background?.globalImage,
