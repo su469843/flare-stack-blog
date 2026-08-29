@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Radio } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
+  findPostByIdFn,
   generateSlugFn,
   previewSummaryFn,
   startPostProcessWorkflowFn,
+  updatePostFn,
 } from "@/features/posts/api/posts.admin.api";
 import type { PostEditorData } from "@/features/posts/components/post-editor/types";
 import { convertToPlainText, slugify } from "@/features/posts/utils/content";
@@ -13,6 +14,7 @@ import { createTagFn, generateTagsFn } from "@/features/tags/api/tags.api";
 import { TAGS_KEYS } from "@/features/tags/queries";
 import type { Tag } from "@/features/tags/tags.schema";
 import { useDebounce } from "@/hooks/use-debounce";
+import { POSTS_KEYS } from "@/features/posts/queries";
 import { toLocalDateString } from "@/lib/utils";
 import { m } from "@/paraglide/messages";
 
@@ -24,6 +26,9 @@ interface UsePostActionsOptions {
   setError: (error: string | null) => void;
   allTags: Array<Tag>;
 }
+
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export function usePostActions({
   postId,
@@ -112,49 +117,139 @@ export function usePostActions({
   const debouncedTitle = useDebounce(post.title, 500);
   const debouncedContentJson = useDebounce(post.contentJson, 500);
 
-  const processDataMutation = useMutation({
-    mutationFn: startPostProcessWorkflowFn,
-    onSuccess: () => {
-      // Feedback: Notify user task is running
-      toast(m.editor_action_publish_start(), {
-        description: m.editor_action_publish_desc(),
-        icon: <Radio className="animate-pulse text-foreground" />,
-        className:
-          "bg-background/95 backdrop-blur-2xl border border-border rounded-sm",
-      });
+  // 发布/下架复核参数：最多 3 轮，每轮触发后轮询验证状态是否真正落库
+  const PROCESS_MAX_ATTEMPTS = 3;
+  const VERIFY_POLL_INTERVAL_MS = 4000;
+  const VERIFY_POLLS_PER_ATTEMPT = 3;
 
-      setProcessState("SUCCESS");
-
-      // Update the KV snapshot to match what we just published.
-      // This effectively 'resets' the isDirty state for the sync UI.
-      setSessionSynced(true);
-      setKvSnapshot(post);
-
-      // Reset after cooldown
-      setTimeout(() => {
-        setProcessState("IDLE");
-      }, 3000);
-    },
-    onSettled: (_data, error) => {
-      if (!error) return;
+  const finalizeProcessSuccess = (snapshot: PostEditorData) => {
+    toast.success(m.editor_action_publish_success(), {
+      description: m.editor_action_publish_success_desc(),
+    });
+    setSessionSynced(true);
+    setKvSnapshot(snapshot);
+    setProcessState("SUCCESS");
+    // Reset after cooldown
+    setTimeout(() => {
       setProcessState("IDLE");
-    },
-  });
+    }, 3000);
+    void queryClient.invalidateQueries({ queryKey: POSTS_KEYS.adminLists });
+    void queryClient.invalidateQueries({ queryKey: POSTS_KEYS.lists });
+    void queryClient.invalidateQueries({ queryKey: POSTS_KEYS.counts });
+  };
+
+  const runProcessWorkflow = async () => {
+    const isUnpublish = post.status === "draft" && post.hasPublicCache;
+    const targetStatus: PostEditorData["status"] = isUnpublish
+      ? "draft"
+      : "published";
+    const targetPublishedAt =
+      targetStatus === "published"
+        ? (post.publishedAt ?? new Date())
+        : post.publishedAt;
+
+    let lastFailure: string | null = null;
+    let statusPersisted = false;
+    let processingSettled = false;
+
+    for (let attempt = 1; attempt <= PROCESS_MAX_ATTEMPTS; attempt++) {
+      if (attempt > 1) {
+        toast.info(
+          m.editor_action_publish_retrying({ attempt: String(attempt - 1) }),
+        );
+      }
+      try {
+        // 1) 先把目标状态显式写入数据库，绝不依赖自动保存的时机，
+        //    否则工作流可能针对草稿运行，导致“点了发布却一直停在草稿箱”。
+        const updateResult = await updatePostFn({
+          data: {
+            id: postId,
+            data: {
+              status: targetStatus,
+              publishedAt: targetPublishedAt,
+            },
+          },
+        });
+        if (updateResult.error) {
+          lastFailure = `${m.editor_action_publish_error_save()}: ${updateResult.error.reason}`;
+          continue;
+        }
+
+        statusPersisted = true;
+        setPost((prev) => ({
+          ...prev,
+          status: targetStatus,
+          publishedAt: targetPublishedAt,
+        }));
+
+        // 2) 触发后台处理工作流（生成摘要/快照/清缓存/搜索索引）。
+        await startPostProcessWorkflowFn({
+          data: {
+            id: postId,
+            status: targetStatus,
+            clientToday: toLocalDateString(new Date()),
+          },
+        });
+
+        // 3) 复核：轮询后端，确认状态真正变成目标值、且公开缓存已结算。
+        for (let poll = 0; poll < VERIFY_POLLS_PER_ATTEMPT; poll++) {
+          await sleep(VERIFY_POLL_INTERVAL_MS);
+          const check = await findPostByIdFn({ data: { id: postId } });
+          if (!check) {
+            lastFailure = m.editor_action_publish_error_save();
+            break;
+          }
+
+          const statusOk = check.status === targetStatus;
+          processingSettled = isUnpublish
+            ? !check.hasPublicCache
+            : check.hasPublicCache;
+
+          if (statusOk && processingSettled) {
+            finalizeProcessSuccess({
+              ...post,
+              status: targetStatus,
+              publishedAt: targetPublishedAt,
+              isSynced: true,
+              hasPublicCache: !isUnpublish,
+            });
+            return;
+          }
+
+          lastFailure = statusOk
+            ? null
+            : m.editor_action_publish_status_mismatch();
+        }
+      } catch (error) {
+        lastFailure =
+          error instanceof Error
+            ? error.message
+            : m.editor_action_unknown_error();
+      }
+    }
+
+    setProcessState("IDLE");
+    void queryClient.invalidateQueries({ queryKey: POSTS_KEYS.adminLists });
+
+    if (statusPersisted && lastFailure === null) {
+      // 状态已经改成目标值，但后台工作流始终没有结算（最常见：AI 摘要失败）。
+      toast.warning(m.editor_action_publish_success_partial(), {
+        description: m.editor_action_publish_success_partial_desc(),
+      });
+      return;
+    }
+
+    toast.error(m.editor_action_publish_failed(), {
+      description: m.editor_action_publish_failed_desc({
+        reason: lastFailure ?? m.editor_action_unknown_error(),
+      }),
+    });
+  };
 
   const handleProcessData = () => {
     if (processState !== "IDLE") return;
-
     setProcessState("PROCESSING");
-
-    setTimeout(() => {
-      processDataMutation.mutate({
-        data: {
-          id: postId,
-          status: post.status,
-          clientToday: toLocalDateString(new Date()),
-        },
-      });
-    }, 800);
+    void runProcessWorkflow();
   };
 
   // Slug generation mutation

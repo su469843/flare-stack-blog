@@ -66,8 +66,7 @@ export function PostEditorHeader({
             disabled={
               processState !== "IDLE" ||
               saveStatus === "SAVING" ||
-              !isPostDirty ||
-              (post.status === "published" && !post.publishedAt)
+              !isPostDirty
             }
             variant="ghost"
             className={`

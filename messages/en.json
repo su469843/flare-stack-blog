@@ -691,6 +691,15 @@
   "editor_leave_confirm": "Confirm Leave",
   "editor_action_publish_start": "Publish Workflow Started",
   "editor_action_publish_desc": "Content processing and deployment analysis in progress.",
+  "editor_action_publish_retrying": "Attempt {attempt} was not confirmed, retrying automatically...",
+  "editor_action_publish_success": "Published (verified)",
+  "editor_action_publish_success_desc": "The post status is confirmed as published and background processing has completed.",
+  "editor_action_publish_success_partial": "Published, but background processing is incomplete",
+  "editor_action_publish_success_partial_desc": "The post status was saved as published, but the public snapshot/cache has not been generated yet, so it may not appear on the site. Most common causes: AI summary generation failed (check AI environment variables), or the Cloudflare Workflow failed (check POST_PROCESS_WORKFLOW runs under Cloudflare Dashboard → Workers → Workflows).",
+  "editor_action_publish_failed": "Publish failed (retried 3 times)",
+  "editor_action_publish_failed_desc": "Reason: {reason}",
+  "editor_action_publish_status_mismatch": "Status was still not published when verified (the session may have expired or the save did not take effect)",
+  "editor_action_publish_error_save": "Failed to save post status",
   "editor_action_slug_set": "URL Slug Set",
   "editor_action_slug_set_desc": [
     {

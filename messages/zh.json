@@ -684,6 +684,15 @@
   "editor_leave_confirm": "确认离开",
   "editor_action_publish_start": "发布流启动",
   "editor_action_publish_desc": "后台正在进行内容处理与部署分析。",
+  "editor_action_publish_retrying": "第 {attempt} 次发布未确认成功，正在自动重试...",
+  "editor_action_publish_success": "发布成功（已复核）",
+  "editor_action_publish_success_desc": "文章状态已确认为「已发布」，后台内容处理已完成。",
+  "editor_action_publish_success_partial": "状态已发布，但后台处理未完成",
+  "editor_action_publish_success_partial_desc": "文章状态已保存为「已发布」，但前台快照/缓存尚未生成，前台可能暂时不显示。最常见原因：AI 摘要生成失败（请检查 AI 相关环境变量），或 Cloudflare Workflow 执行失败（请到 Cloudflare 控制台 → Workers → Workflows 查看 POST_PROCESS_WORKFLOW 的执行记录）。",
+  "editor_action_publish_failed": "发布失败（已自动重试 3 次）",
+  "editor_action_publish_failed_desc": "原因：{reason}",
+  "editor_action_publish_status_mismatch": "状态保存后复核时仍未变成「已发布」（可能登录会话过期或保存未生效）",
+  "editor_action_publish_error_save": "保存文章状态失败",
   "editor_action_slug_set": "URL slug 已设置",
   "editor_action_slug_set_desc": [
     {
