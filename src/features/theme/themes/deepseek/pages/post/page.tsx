@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUp, Pencil, Share2, Sparkles } from "lucide-react";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { PostPageProps } from "@/features/theme/contract/pages";
@@ -198,8 +198,8 @@ function ClientOnly({
   children,
   fallback,
 }: {
-  children: React.ReactNode;
-  fallback: React.ReactNode;
+  children: ReactNode;
+  fallback: ReactNode;
 }) {
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {

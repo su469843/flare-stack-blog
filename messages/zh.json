@@ -691,6 +691,7 @@
   "editor_action_publish_success_partial_desc": "文章状态已保存为「已发布」，但前台快照/缓存尚未生成，前台可能暂时不显示。最常见原因：AI 摘要生成失败（请检查 AI 相关环境变量），或 Cloudflare Workflow 执行失败（请到 Cloudflare 控制台 → Workers → Workflows 查看 POST_PROCESS_WORKFLOW 的执行记录）。",
   "editor_action_publish_failed": "发布失败（已自动重试 3 次）",
   "editor_action_publish_failed_desc": "原因：{reason}",
+  "editor_action_publish_needs_save": "文章内容尚未保存完成，请等自动保存完成后再发布",
   "editor_action_publish_status_mismatch": "状态保存后复核时仍未变成「已发布」（可能登录会话过期或保存未生效）",
   "editor_action_publish_error_save": "保存文章状态失败",
   "editor_action_slug_set": "URL slug 已设置",
@@ -861,7 +862,7 @@
     {
       "declarations": ["input maxSizeMb"],
       "match": {
-        "maxSizeMb=*": "支持 JPEG/JPG/PNG/WEBP/GIF (最大 {maxSizeMb}MB)，以及 MP3/FLAC 音频、MP4 视频 (最大 100MB)"
+        "maxSizeMb=*": "支持 JPEG/JPG/PNG/WEBP/GIF (最大 {maxSizeMb}MB)，以及 MP3/FLAC 音频、MP4 视频 (最大 95MB)"
       }
     }
   ],
@@ -942,7 +943,7 @@
   "media_upload_log_stream_sending": "> UPLOAD_STREAM: 数据包发送中...",
   "media_upload_error_db": "媒体入库失败，请重试",
   "media_validation_file_required": "请选择要上传的文件",
-  "media_validation_file_too_large": "文件大小超出限制（图片 10MB，音视频 100MB）",
+  "media_validation_file_too_large": "文件大小超出限制（图片 10MB，音视频 95MB）",
   "media_validation_file_invalid_type": "仅支持上传图片或 MP3/FLAC/MP4 音视频文件",
   "media_validation_key_required": "图片标识不能为空",
   "media_upload_fail": [

@@ -1,7 +1,34 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import type { SearchPageProps } from "@/features/theme/contract/pages";
 import { m } from "@/paraglide/messages";
+
+/**
+ * 搜索摘要来自 buildSnippet（HTML 转义后的文本 + <mark> 高亮标签）或数据库原文。
+ * 按 <mark> 拆分后以纯文本节点渲染，React 会对文本自动转义，杜绝 HTML 注入。
+ */
+function renderHighlight(
+  snippet: string | null | undefined,
+  fallback: string | null | undefined,
+) {
+  const source = snippet || fallback || "";
+  const parts = source.split(/(<mark>.*?<\/mark>)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("<mark>") && part.endsWith("</mark>")) {
+      return <mark key={i}>{unescapeHtml(part.slice(6, -7))}</mark>;
+    }
+    return <Fragment key={i}>{unescapeHtml(part)}</Fragment>;
+  });
+}
+
+function unescapeHtml(s: string) {
+  return s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&amp;/g, "&");
+}
 
 export function SearchPage({
   query,
@@ -70,23 +97,22 @@ export function SearchPage({
             >
               <div className="flex flex-col gap-2">
                 <div className="flex items-baseline justify-between">
-                  <h4
-                    className="text-lg md:text-xl text-muted-foreground font-serif tracking-tight transition-colors duration-300 group-hover:text-foreground"
-                    style={{
-                      viewTransitionName: `post-title-${result.post.slug}`,
-                    }}
-                    dangerouslySetInnerHTML={{
-                      __html: result.matches.title || result.post.title,
-                    }}
-                  />
+                <h4
+                  className="text-lg md:text-xl text-muted-foreground font-serif tracking-tight transition-colors duration-300 group-hover:text-foreground"
+                  style={{
+                    viewTransitionName: `post-title-${result.post.slug}`,
+                  }}
+                >
+                  {renderHighlight(result.matches.title, result.post.title)}
+                </h4>
                 </div>
 
-                <p
-                  className="text-sm font-sans text-muted-foreground line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity duration-300"
-                  dangerouslySetInnerHTML={{
-                    __html: result.matches.summary || result.post.summary || "",
-                  }}
-                />
+                <p className="text-sm font-sans text-muted-foreground line-clamp-2 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                  {renderHighlight(
+                    result.matches.summary,
+                    result.post.summary,
+                  )}
+                </p>
 
                 {result.post.tags.length > 0 && (
                   <div className="flex gap-2 pt-2">

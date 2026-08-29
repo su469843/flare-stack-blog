@@ -94,6 +94,7 @@ export function PostEditor({ initialData, onSave }: PostEditorProps) {
     postId: initialData.id,
     post,
     initialData,
+    saveStatus,
     setPost,
     setError,
     allTags,

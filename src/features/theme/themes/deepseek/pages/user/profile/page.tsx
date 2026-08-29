@@ -86,10 +86,11 @@ export function ProfilePage({
           <form onSubmit={profileForm.handleSubmit} className="space-y-8">
             <div className="space-y-6">
               <div className="space-y-2 group">
-                <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+                <label htmlFor="profile-name" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
                   {m.profile_name()}
                 </label>
                 <Input
+                  id="profile-name"
                   {...profileForm.register("name")}
                   className="bg-transparent border-0 border-b border-border text-foreground font-serif text-lg px-0 rounded-none focus-visible:ring-0 focus-visible:border-foreground transition-all placeholder:text-muted-foreground/30 shadow-none h-auto py-2"
                 />
@@ -101,10 +102,11 @@ export function ProfilePage({
               </div>
 
               <div className="space-y-2 group">
-                <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+                <label htmlFor="profile-image" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
                   {m.profile_avatar_url()}
                 </label>
                 <Input
+                  id="profile-image"
                   {...profileForm.register("image")}
                   className="bg-transparent border-0 border-b border-border text-foreground font-mono text-sm px-0 rounded-none focus-visible:ring-0 focus-visible:border-foreground transition-all placeholder:text-muted-foreground/30 shadow-none h-auto py-2"
                   placeholder="https://..."
@@ -183,11 +185,12 @@ export function ProfilePage({
               </h3>
               <form onSubmit={passwordForm.handleSubmit} className="space-y-6">
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+                  <label htmlFor="profile-currentPassword" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
                     {m.profile_current_password()}
                   </label>
                   <Input
                     type="password"
+                    id="profile-currentPassword"
                     {...passwordForm.register("currentPassword")}
                     className="bg-transparent border-0 border-b border-border text-foreground font-sans text-sm px-0 rounded-none focus-visible:ring-0 focus-visible:border-foreground transition-all placeholder:text-muted-foreground/30 shadow-none h-auto py-2"
                   />
@@ -199,11 +202,12 @@ export function ProfilePage({
                 </div>
 
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+                  <label htmlFor="profile-newPassword" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
                     {m.profile_new_password()}
                   </label>
                   <Input
                     type="password"
+                    id="profile-newPassword"
                     {...passwordForm.register("newPassword")}
                     className="bg-transparent border-0 border-b border-border text-foreground font-sans text-sm px-0 rounded-none focus-visible:ring-0 focus-visible:border-foreground transition-all placeholder:text-muted-foreground/30 shadow-none h-auto py-2"
                   />
@@ -215,11 +219,12 @@ export function ProfilePage({
                 </div>
 
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+                  <label htmlFor="profile-confirmPassword" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
                     {m.profile_confirm_password()}
                   </label>
                   <Input
                     type="password"
+                    id="profile-confirmPassword"
                     {...passwordForm.register("confirmPassword")}
                     className="bg-transparent border-0 border-b border-border text-foreground font-sans text-sm px-0 rounded-none focus-visible:ring-0 focus-visible:border-foreground transition-all placeholder:text-muted-foreground/30 shadow-none h-auto py-2"
                   />

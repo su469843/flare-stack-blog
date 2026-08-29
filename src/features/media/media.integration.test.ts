@@ -319,3 +319,116 @@ describe("MediaService", () => {
     });
   });
 });
+
+/**
+ * handleImageRequest Range 请求测试
+ *
+ * 使用模拟 R2 验证：请求结束位置超出对象末尾时，R2 会截断正文，
+ * Content-Range 必须依据 object.range（实际读取范围）计算而不是请求参数。
+ */
+describe("MediaService.handleImageRequest Range", () => {
+  const SIZE = 1000;
+  const bytes = new Uint8Array(SIZE).map((_, i) => i % 256);
+
+  const createRangeTestEnv = () => {
+    const fakeR2 = {
+      get: async (
+        _key: string,
+        options?: { range?: { offset?: number; length?: number; suffix?: number } },
+      ) => {
+        let start = 0;
+        let end = SIZE - 1;
+        const r = options?.range;
+        if (r) {
+          if ("suffix" in r && typeof r.suffix === "number") {
+            start = Math.max(0, SIZE - r.suffix);
+          } else {
+            start = r.offset ?? 0;
+            end = Math.min(
+              r.length !== undefined ? start + r.length - 1 : SIZE - 1,
+              SIZE - 1,
+            );
+          }
+        }
+        return {
+          size: SIZE,
+          body: bytes.slice(start, end + 1),
+          httpEtag: '"mock-etag"',
+          httpMetadata: { contentType: "video/mp4" },
+          writeHttpMetadata: (headers: Headers) => {
+            headers.set("Content-Type", "video/mp4");
+          },
+          range: { offset: start, length: end - start + 1 },
+        };
+      },
+    };
+    // handleImageRequest 只使用 env.R2
+    return { R2: fakeR2 } as unknown as Parameters<
+      typeof MediaService.handleImageRequest
+    >[0];
+  };
+
+  const makeRequest = (rangeHeader?: string) =>
+    new Request("https://example.com/images/test.mp4", {
+      headers: rangeHeader ? { range: rangeHeader } : {},
+    });
+
+  it("clamps Content-Range when the requested end exceeds the object size", async () => {
+    const response = await MediaService.handleImageRequest(
+      createRangeTestEnv(),
+      "test.mp4",
+      makeRequest("bytes=900-999999"),
+    );
+
+    expect(response.status).toBe(206);
+    expect(response.headers.get("Content-Range")).toBe(
+      `bytes 900-${SIZE - 1}/${SIZE}`,
+    );
+    const body = await response.arrayBuffer();
+    expect(body.byteLength).toBe(100);
+  });
+
+  it("returns 206 with the exact requested range when within bounds", async () => {
+    const response = await MediaService.handleImageRequest(
+      createRangeTestEnv(),
+      "test.mp4",
+      makeRequest("bytes=0-9"),
+    );
+
+    expect(response.status).toBe(206);
+    expect(response.headers.get("Content-Range")).toBe("bytes 0-9/1000");
+  });
+
+  it("supports open-ended and suffix ranges", async () => {
+    const openEnded = await MediaService.handleImageRequest(
+      createRangeTestEnv(),
+      "test.mp4",
+      makeRequest("bytes=500-"),
+    );
+    expect(openEnded.status).toBe(206);
+    expect(openEnded.headers.get("Content-Range")).toBe(
+      `bytes 500-${SIZE - 1}/${SIZE}`,
+    );
+
+    const suffix = await MediaService.handleImageRequest(
+      createRangeTestEnv(),
+      "test.mp4",
+      makeRequest("bytes=-100"),
+    );
+    expect(suffix.status).toBe(206);
+    expect(suffix.headers.get("Content-Range")).toBe(
+      `bytes ${SIZE - 100}-${SIZE - 1}/${SIZE}`,
+    );
+  });
+
+  it("serves the full object without Content-Range when no Range header is present", async () => {
+    const response = await MediaService.handleImageRequest(
+      createRangeTestEnv(),
+      "test.mp4",
+      makeRequest(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Range")).toBeNull();
+  });
+});

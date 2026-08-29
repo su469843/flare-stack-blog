@@ -8,7 +8,10 @@ import {
   startPostProcessWorkflowFn,
   updatePostFn,
 } from "@/features/posts/api/posts.admin.api";
-import type { PostEditorData } from "@/features/posts/components/post-editor/types";
+import type {
+  PostEditorData,
+  SaveStatus,
+} from "@/features/posts/components/post-editor/types";
 import { convertToPlainText, slugify } from "@/features/posts/utils/content";
 import { createTagFn, generateTagsFn } from "@/features/tags/api/tags.api";
 import { TAGS_KEYS } from "@/features/tags/queries";
@@ -22,6 +25,7 @@ interface UsePostActionsOptions {
   postId: number;
   post: PostEditorData;
   initialData: PostEditorData;
+  saveStatus: SaveStatus;
   setPost: React.Dispatch<React.SetStateAction<PostEditorData>>;
   setError: (error: string | null) => void;
   allTags: Array<Tag>;
@@ -34,6 +38,7 @@ export function usePostActions({
   postId,
   post,
   initialData,
+  saveStatus,
   setPost,
   setError,
   allTags,
@@ -248,6 +253,14 @@ export function usePostActions({
 
   const handleProcessData = () => {
     if (processState !== "IDLE") return;
+
+    // 发布/下架前必须确保自动保存已完成（SYNCED），
+    // 否则工作流会针对未持久化的旧内容运行，导致发布出去的不是编辑器里的最新版本。
+    if (saveStatus !== "SYNCED") {
+      toast.info(m.editor_action_publish_needs_save());
+      return;
+    }
+
     setProcessState("PROCESSING");
     void runProcessWorkflow();
   };

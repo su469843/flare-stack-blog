@@ -17,7 +17,7 @@ export function PublicLayout({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="deepseek-theme min-h-screen flex flex-col">
+    <div className="deepseek-theme isolate min-h-screen flex flex-col">
       <BackgroundLayer background={siteConfig.theme.default.background} />
       <Navbar
         navOptions={navOptions}
@@ -32,8 +32,11 @@ export function PublicLayout({
         user={user}
         logout={logout}
       />
-      <main className="flex-1">{children}</main>
-      <Footer navOptions={navOptions} />
+      {/* main 与 Footer 需位于背景层（fixed, z-0）之上，避免渐变遮罩盖住正文 */}
+      <main className="relative z-10 flex-1">{children}</main>
+      <div className="relative z-10">
+        <Footer navOptions={navOptions} />
+      </div>
     </div>
   );
 }

@@ -2,7 +2,10 @@ import { z } from "zod";
 import type { Messages } from "@/lib/i18n";
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB — 图片
-export const MAX_AV_FILE_SIZE = 100 * 1024 * 1024; // 100MB — 音视频（受 Workers 请求体上限约束）
+// 音视频上限低于 Workers 100MB 请求体硬上限，为 multipart/form-data 边界与表单字段留出余量，
+// 确保超限请求能在 parseUploadMediaInput 中返回友好错误而不是被边缘直接拒绝。
+// Business/Enterprise 套餐的请求体上限更高，可按实际套餐调大此常量（唯一调整点）。
+export const MAX_AV_FILE_SIZE = 95 * 1024 * 1024; // 95MB — 音视频
 export const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",

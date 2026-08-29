@@ -21,10 +21,11 @@ export function FriendLinkSubmitForm({ form }: FriendLinkSubmitFormProps) {
       <Turnstile {...turnstileProps} />
       <div className="space-y-6">
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+          <label htmlFor="friend-siteName" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
             {m.friend_link_field_site_name()} *
           </label>
           <Input
+            id="friend-siteName"
             {...register("siteName")}
             className={inputClassName}
             placeholder={m.friend_link_placeholder_site_name_default()}
@@ -37,10 +38,11 @@ export function FriendLinkSubmitForm({ form }: FriendLinkSubmitFormProps) {
         </div>
 
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+          <label htmlFor="friend-siteUrl" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
             {m.friend_link_field_site_url()} *
           </label>
           <Input
+            id="friend-siteUrl"
             {...register("siteUrl")}
             className={monoInputClassName}
             placeholder={m.friend_link_placeholder_site_url()}
@@ -53,10 +55,11 @@ export function FriendLinkSubmitForm({ form }: FriendLinkSubmitFormProps) {
         </div>
 
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+          <label htmlFor="friend-description" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
             {m.friend_link_field_description_default()}
           </label>
           <Input
+            id="friend-description"
             {...register("description")}
             className={inputClassName}
             placeholder={m.friend_link_placeholder_description_default()}
@@ -69,10 +72,11 @@ export function FriendLinkSubmitForm({ form }: FriendLinkSubmitFormProps) {
         </div>
 
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+          <label htmlFor="friend-logoUrl" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
             {m.friend_link_field_logo_url_default()}
           </label>
           <Input
+            id="friend-logoUrl"
             {...register("logoUrl")}
             className={monoInputClassName}
             placeholder={m.friend_link_placeholder_site_url()}
@@ -85,10 +89,11 @@ export function FriendLinkSubmitForm({ form }: FriendLinkSubmitFormProps) {
         </div>
 
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
+          <label htmlFor="friend-contactEmail" className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider group-focus-within:text-foreground transition-colors">
             {m.friend_link_field_contact_email()} *
           </label>
           <Input
+            id="friend-contactEmail"
             {...register("contactEmail")}
             className={monoInputClassName}
             placeholder={m.friend_link_placeholder_contact_email_default()}

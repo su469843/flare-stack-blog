@@ -35,7 +35,8 @@ export function buildSnippet({
     terms.length > 0 ? terms : fallbackTerm ? [fallbackTerm] : [];
 
   if (activeTerms.length === 0) {
-    return source.slice(0, snippetSlice);
+    // 输出会被主题以 HTML 形式渲染（或作为高亮节点来源），统一转义防止文章原文注入 HTML
+    return escapeHtml(source.slice(0, snippetSlice));
   }
 
   const lowerSource = source.toLowerCase();
@@ -44,7 +45,7 @@ export function buildSnippet({
     findApproxMatch(source, activeTerms, scanLimit, fuzzyMaxDistance);
 
   if (!match) {
-    return source.slice(0, snippetSlice);
+    return escapeHtml(source.slice(0, snippetSlice));
   }
 
   const { idx, len, token } = match;

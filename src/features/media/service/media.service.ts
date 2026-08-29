@@ -155,16 +155,50 @@ export async function handleImageRequest(
     headers.set("ETag", object.httpEtag);
     headers.set("Accept-Ranges", "bytes");
 
-    if (range && request.headers.get("range")) {
+    if (range) {
+      // 以 R2 返回的 object.range 为准计算实际范围（R2 会在请求超出对象末尾时截断），
+      // 保证 Content-Range 与真实返回的正文一致。
       const size = object.size;
       let start = 0;
       let end = size - 1;
-      if ("suffix" in range) {
-        start = Math.max(0, size - range.suffix);
+      const actual = object.range;
+      if (typeof actual === "number") {
+        start = actual;
         end = size - 1;
+      } else if (
+        actual &&
+        "suffix" in actual &&
+        typeof actual.suffix === "number"
+      ) {
+        start = Math.max(0, size - actual.suffix);
+        end = size - 1;
+      } else if (
+        actual &&
+        "offset" in actual &&
+        typeof actual.offset === "number"
+      ) {
+        start = actual.offset;
+        const requestedEnd =
+          "end" in actual && typeof actual.end === "number"
+            ? actual.end
+            : "length" in actual && typeof actual.length === "number"
+              ? start + actual.length - 1
+              : size - 1;
+        end = Math.max(start, Math.min(requestedEnd, size - 1));
       } else {
-        start = range.offset;
-        end = range.length !== undefined ? start + range.length - 1 : size - 1;
+        // R2 未返回 range 时的兜底：按请求参数计算并钳制到对象末尾
+        if ("suffix" in range) {
+          start = Math.max(0, size - range.suffix);
+        } else {
+          start = range.offset ?? 0;
+          end = Math.max(
+            start,
+            Math.min(
+              range.length !== undefined ? start + range.length - 1 : size - 1,
+              size - 1,
+            ),
+          );
+        }
       }
       headers.set("Content-Range", `bytes ${start}-${end}/${size}`);
       return new Response(object.body, { status: 206, headers });

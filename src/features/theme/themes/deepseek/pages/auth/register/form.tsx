@@ -15,11 +15,12 @@ export function RegisterForm({ form }: RegisterFormProps) {
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="space-y-6">
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
+          <label htmlFor="register-name" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
             {m.register_nickname()}
           </label>
           <Input
             type="text"
+            id="register-name"
             {...register("name")}
             className="w-full bg-transparent border-0 border-b border-border/40 rounded-none py-3 text-sm font-light focus-visible:ring-0 focus:border-foreground focus:outline-none transition-all placeholder:text-muted-foreground/30 shadow-none px-0"
             placeholder={m.register_nickname_placeholder()}
@@ -32,11 +33,12 @@ export function RegisterForm({ form }: RegisterFormProps) {
         </div>
 
         <div className="space-y-2 group">
-          <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
+          <label htmlFor="register-email" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
             {m.login_email_address()}
           </label>
           <Input
             type="email"
+            id="register-email"
             {...register("email")}
             className="w-full bg-transparent border-0 border-b border-border/40 rounded-none py-3 text-sm font-light focus-visible:ring-0 focus:border-foreground focus:outline-none transition-all placeholder:text-muted-foreground/30 shadow-none px-0"
             placeholder={m.login_email_placeholder()}
@@ -50,11 +52,12 @@ export function RegisterForm({ form }: RegisterFormProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2 group">
-            <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
+            <label htmlFor="register-password" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
               {m.register_password()}
             </label>
             <Input
               type="password"
+              id="register-password"
               {...register("password")}
               className="w-full bg-transparent border-0 border-b border-border/40 rounded-none py-3 text-sm font-light focus-visible:ring-0 focus:border-foreground focus:outline-none transition-all placeholder:text-muted-foreground/30 shadow-none px-0"
               placeholder={m.login_password_placeholder()}
@@ -66,11 +69,12 @@ export function RegisterForm({ form }: RegisterFormProps) {
             )}
           </div>
           <div className="space-y-2 group">
-            <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
+            <label htmlFor="register-confirmPassword" className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/60 group-focus-within:text-foreground transition-colors">
               {m.register_confirm_password()}
             </label>
             <Input
               type="password"
+              id="register-confirmPassword"
               {...register("confirmPassword")}
               className="w-full bg-transparent border-0 border-b border-border/40 rounded-none py-3 text-sm font-light focus-visible:ring-0 focus:border-foreground focus:outline-none transition-all placeholder:text-muted-foreground/30 shadow-none px-0"
               placeholder={m.login_password_placeholder()}
