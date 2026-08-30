@@ -1,4 +1,3 @@
-import APlayer from "aplayer";
 import "aplayer/dist/APlayer.min.css";
 import { useEffect, useRef } from "react";
 
@@ -11,7 +10,8 @@ interface AudioPlayerProps {
 
 /**
  * APlayer 音频播放器（MP3/FLAC）
- * 仅在客户端挂载，SSR 渲染空容器
+ * APlayer 的 UMD 包在模块加载时访问 window，不能静态 import 进服务端包，
+ * 因此在 effect 中动态加载，仅在浏览器端执行。
  */
 export function AudioPlayer({ src, title, theme = "#4d6bfe" }: AudioPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -20,19 +20,27 @@ export function AudioPlayer({ src, title, theme = "#4d6bfe" }: AudioPlayerProps)
     const container = containerRef.current;
     if (!container) return;
 
-    const player = new APlayer({
-      container,
-      audio: [
-        {
-          name: title || src.split("/").pop() || "audio",
-          url: src,
-        },
-      ],
-      theme,
-    });
+    let player: { destroy: () => void } | null = null;
+    let cancelled = false;
+
+    void (async () => {
+      const { default: APlayer } = await import("aplayer");
+      if (cancelled || !containerRef.current) return;
+      player = new APlayer({
+        container: containerRef.current,
+        audio: [
+          {
+            name: title || src.split("/").pop() || "audio",
+            url: src,
+          },
+        ],
+        theme,
+      });
+    })();
 
     return () => {
-      player.destroy();
+      cancelled = true;
+      player?.destroy();
     };
   }, [src, title, theme]);
 

@@ -1,4 +1,3 @@
-import Artplayer from "artplayer";
 import { useEffect, useRef } from "react";
 
 interface VideoPlayerProps {
@@ -7,7 +6,8 @@ interface VideoPlayerProps {
 
 /**
  * ArtPlayer 视频播放器（MP4）
- * 仅在客户端挂载，SSR 渲染空容器；支持清晰度设置、倍速、比例调整与全屏
+ * 与 APlayer 同理：在 effect 中动态加载，避免打包进服务端 SSR 包；
+ * 支持清晰度设置、倍速、比例调整与全屏。
  */
 export function VideoPlayer({ src }: VideoPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,20 +16,28 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
     const container = containerRef.current;
     if (!container) return;
 
-    const art = new Artplayer({
-      container,
-      url: src,
-      setting: true,
-      playbackRate: true,
-      aspectRatio: true,
-      flip: true,
-      fullscreen: true,
-      fullscreenWeb: true,
-      miniProgressBar: true,
-    });
+    let player: { destroy: (removeHtml?: boolean) => void } | null = null;
+    let cancelled = false;
+
+    void (async () => {
+      const { default: Artplayer } = await import("artplayer");
+      if (cancelled || !containerRef.current) return;
+      player = new Artplayer({
+        container: containerRef.current,
+        url: src,
+        setting: true,
+        playbackRate: true,
+        aspectRatio: true,
+        flip: true,
+        fullscreen: true,
+        fullscreenWeb: true,
+        miniProgressBar: true,
+      });
+    })();
 
     return () => {
-      art.destroy(false);
+      cancelled = true;
+      player?.destroy(false);
     };
   }, [src]);
 
