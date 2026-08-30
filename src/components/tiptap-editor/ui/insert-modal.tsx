@@ -25,7 +25,10 @@ interface InsertModalProps {
   type: ModalType;
   initialUrl?: string;
   onClose: () => void;
-  onSubmit: (url: string, attrs?: { width?: number; height?: number }) => void;
+  onSubmit: (
+    url: string,
+    attrs?: { width?: number; height?: number; title?: string },
+  ) => void;
 }
 
 const MediaItem = memo(
@@ -172,10 +175,15 @@ const InsertModalInternal: React.FC<InsertModalProps> = ({
 
     if (trimmed) {
       if (selectedMedia && selectedMedia.url === trimmed) {
-        onSubmit(trimmed, {
-          width: selectedMedia.width || undefined,
-          height: selectedMedia.height || undefined,
-        });
+        if (activeType === "AUDIO" || activeType === "VIDEO") {
+          // 引用媒体库文件时把原文件名作为曲名/片名传给播放器
+          onSubmit(trimmed, { title: selectedMedia.fileName });
+        } else {
+          onSubmit(trimmed, {
+            width: selectedMedia.width || undefined,
+            height: selectedMedia.height || undefined,
+          });
+        }
       } else {
         onSubmit(trimmed);
       }

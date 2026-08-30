@@ -168,7 +168,7 @@ export const Editor = memo(function Editor({
 
   const handleModalSubmit = (
     url: string,
-    attrs?: { width?: number; height?: number },
+    attrs?: { width?: number; height?: number; title?: string },
   ) => {
     if (modalOpen === "LINK") {
       if (url === "") {
@@ -190,7 +190,10 @@ export const Editor = memo(function Editor({
         editor
           ?.chain()
           .focus()
-          .insertContent({ type: "audio", attrs: { src: url } })
+          .insertContent({
+            type: "audio",
+            attrs: { src: url, title: attrs?.title },
+          })
           .run();
       }
     } else if (modalOpen === "VIDEO") {
@@ -198,7 +201,10 @@ export const Editor = memo(function Editor({
         editor
           ?.chain()
           .focus()
-          .insertContent({ type: "video", attrs: { src: url } })
+          .insertContent({
+            type: "video",
+            attrs: { src: url, title: attrs?.title },
+          })
           .run();
       }
     }
