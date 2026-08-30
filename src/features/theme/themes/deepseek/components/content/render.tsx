@@ -4,6 +4,7 @@ import { MathFormula } from "@/components/content/math-formula";
 import { extensions } from "@/features/posts/editor/config";
 import { CodeBlock } from "@/features/theme/themes/deepseek/components/content/code-block";
 import { ImageDisplay } from "@/features/theme/themes/deepseek/components/content/image-display";
+import { AudioPlayer, VideoPlayer } from "@/components/common/media-players";
 
 export function renderReact(content: JSONContent) {
   return renderToReactElement({
@@ -11,6 +12,14 @@ export function renderReact(content: JSONContent) {
     content,
     options: {
       nodeMapping: {
+        audio: ({ node }) => {
+          const attrs = node.attrs as { src?: string; title?: string | null };
+          return <AudioPlayer src={attrs.src ?? ""} title={attrs.title} />;
+        },
+        video: ({ node }) => {
+          const attrs = node.attrs as { src?: string };
+          return <VideoPlayer src={attrs.src ?? ""} />;
+        },
         image: ({ node }) => {
           const attrs = node.attrs as {
             src: string;

@@ -82,6 +82,16 @@ export const Editor = memo(function Editor({
     setModalOpen("IMAGE");
   }, []);
 
+  const openAudioModal = useCallback(() => {
+    setModalInitialUrl("");
+    setModalOpen("AUDIO");
+  }, []);
+
+  const openVideoModal = useCallback(() => {
+    setModalInitialUrl("");
+    setModalOpen("VIDEO");
+  }, []);
+
   const openFormulaModal = useCallback((mode: FormulaMode) => {
     setFormulaPayload({
       mode,
@@ -175,6 +185,22 @@ export const Editor = memo(function Editor({
           .setImage({ src: url, ...attrs })
           .run();
       }
+    } else if (modalOpen === "AUDIO") {
+      if (url) {
+        editor
+          ?.chain()
+          .focus()
+          .insertContent({ type: "audio", attrs: { src: url } })
+          .run();
+      }
+    } else if (modalOpen === "VIDEO") {
+      if (url) {
+        editor
+          ?.chain()
+          .focus()
+          .insertContent({ type: "video", attrs: { src: url } })
+          .run();
+      }
     }
 
     setModalOpen(null);
@@ -187,6 +213,8 @@ export const Editor = memo(function Editor({
           editor={editor}
           onLinkClick={openLinkModal}
           onImageClick={openImageModal}
+          onAudioClick={openAudioModal}
+          onVideoClick={openVideoModal}
           onFormulaInlineClick={() => openFormulaModal("inline")}
           onFormulaBlockClick={() => openFormulaModal("block")}
         />

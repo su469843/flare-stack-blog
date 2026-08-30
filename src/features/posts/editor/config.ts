@@ -10,6 +10,7 @@ import {
   openFormulaModalForEdit,
 } from "@/components/tiptap-editor/formula-modal-store";
 import { uploadImageFn } from "@/features/media/api/media.api";
+import { AudioExtension } from "@/features/posts/editor/extensions/audio";
 import { CodeBlockExtension } from "@/features/posts/editor/extensions/code-block";
 import { ImageExtension } from "@/features/posts/editor/extensions/images";
 import { TableBlockExtension } from "@/features/posts/editor/extensions/table";
@@ -17,6 +18,7 @@ import { BlockQuoteExtension } from "@/features/posts/editor/extensions/typograp
 import { HeadingExtension } from "@/features/posts/editor/extensions/typography/heading";
 import type { ImageUploadResult } from "@/features/posts/editor/extensions/upload-image";
 import { ImageUpload } from "@/features/posts/editor/extensions/upload-image";
+import { VideoExtension } from "@/features/posts/editor/extensions/video";
 import { slugify } from "@/features/posts/utils/content";
 import { m } from "@/paraglide/messages";
 
@@ -26,6 +28,13 @@ const ALLOWED_IMAGE_MIME_TYPES = [
   "image/jpg",
   "image/gif",
   "image/webp",
+];
+
+const ALLOWED_AV_MIME_TYPES = [
+  "audio/mpeg",
+  "audio/flac",
+  "audio/x-flac",
+  "video/mp4",
 ];
 
 async function handleImageUpload(file: File): Promise<ImageUploadResult> {
@@ -47,10 +56,46 @@ async function handleImageUpload(file: File): Promise<ImageUploadResult> {
   };
 }
 
+async function uploadMediaFile(
+  file: File,
+): Promise<{ url: string } | null> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const result = await uploadImageFn({ data: formData });
+  if (result.error) {
+    toast.error(m.media_upload_error_db());
+    return null;
+  }
+  toast.success(m.media_upload_success({ name: file.name }), {
+    description: m.editor_image_upload_success_desc({ name: file.name }),
+  });
+  return { url: result.data.url };
+}
+
+function insertMediaNode(
+  editor: TiptapEditor,
+  file: File,
+  url: string,
+  pos?: number,
+) {
+  const type = file.type.startsWith("video/") ? "video" : "audio";
+  const content = { type, attrs: { src: url, title: file.name } };
+  if (pos === undefined) {
+    editor.chain().focus().insertContent(content).run();
+  } else {
+    editor.chain().focus().insertContentAt(pos, content).run();
+  }
+}
+
 function handleFileDrop(editor: TiptapEditor, files: Array<File>, pos: number) {
   files.forEach((file) => {
     if (ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
       editor.commands.uploadImage(file, pos);
+    } else if (ALLOWED_AV_MIME_TYPES.includes(file.type)) {
+      void uploadMediaFile(file).then((result) => {
+        if (result) insertMediaNode(editor, file, result.url, pos);
+      });
     }
   });
 }
@@ -59,6 +104,10 @@ function handleFilePaste(editor: TiptapEditor, files: Array<File>) {
   files.forEach((file) => {
     if (ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
       editor.commands.uploadImage(file);
+    } else if (ALLOWED_AV_MIME_TYPES.includes(file.type)) {
+      void uploadMediaFile(file).then((result) => {
+        if (result) insertMediaNode(editor, file, result.url);
+      });
     }
   });
 }
@@ -125,6 +174,8 @@ export const extensions = [
   }),
   ...TableBlockExtension,
   ImageExtension,
+  AudioExtension,
+  VideoExtension,
   ImageUpload.configure({
     onUpload: handleImageUpload,
     onError: (error) => {
@@ -134,7 +185,10 @@ export const extensions = [
     },
   }),
   FileHandler.configure({
-    allowedMimeTypes: ALLOWED_IMAGE_MIME_TYPES,
+    allowedMimeTypes: [
+      ...ALLOWED_IMAGE_MIME_TYPES,
+      ...ALLOWED_AV_MIME_TYPES,
+    ],
     onDrop: handleFileDrop,
     onPaste: handleFilePaste,
   }),

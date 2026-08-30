@@ -754,6 +754,8 @@
   "editor_toolbar_blockquote": "Blockquote",
   "editor_toolbar_table": "Insert Table",
   "editor_toolbar_link": "Insert Link",
+  "editor_toolbar_audio": "Insert audio",
+  "editor_toolbar_video": "Insert video",
   "editor_toolbar_image": "Insert Image",
   "editor_toolbar_undo": "Undo",
   "editor_toolbar_redo": "Redo",

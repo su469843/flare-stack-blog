@@ -1,10 +1,12 @@
 import { ClientOnly } from "@tanstack/react-router";
 import {
   Check,
+  Film,
   Globe,
   Image as ImageIcon,
   Link as LinkIcon,
   Loader2,
+  Music,
   Search,
   X,
 } from "lucide-react";
@@ -17,7 +19,7 @@ import { getOptimizedImageUrl } from "@/features/media/utils/media.utils";
 import { useDelayUnmount } from "@/hooks/use-delay-unmount";
 import { m } from "@/paraglide/messages";
 
-export type ModalType = "LINK" | "IMAGE" | null;
+export type ModalType = "LINK" | "IMAGE" | "AUDIO" | "VIDEO" | null;
 
 interface InsertModalProps {
   type: ModalType;
@@ -37,6 +39,7 @@ const MediaItem = memo(
     onSelect: (m: MediaAsset) => void;
   }) => {
     const [isLoaded, setIsLoaded] = useState(false);
+    const isImage = media.mimeType.startsWith("image/");
 
     return (
       <div
@@ -50,21 +53,39 @@ const MediaItem = memo(
                 }
             `}
       >
-        {!isLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
-            <ImageIcon size={18} className="text-muted-foreground/30" />
+        {!isImage ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
+            {media.mimeType.startsWith("audio/") ? (
+              <Music size={22} strokeWidth={1} />
+            ) : (
+              <Film size={22} strokeWidth={1} />
+            )}
+            <span className="text-[10px] font-mono uppercase">
+              {media.mimeType.split("/")[1]}
+            </span>
+            <span className="text-[10px] font-mono px-2 text-center line-clamp-1">
+              {media.fileName}
+            </span>
           </div>
-        )}
+        ) : (
+          <>
+            {!isLoaded && (
+              <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
+                <ImageIcon size={18} className="text-muted-foreground/30" />
+              </div>
+            )}
 
-        <img
-          src={getOptimizedImageUrl(media.key)}
-          alt={media.fileName}
-          className={`w-full h-full object-cover transition-all duration-1000 ${
-            isLoaded ? "opacity-100" : "opacity-0"
-          } ${isSelected ? "scale-105" : "group-hover:scale-110"}`}
-          loading="lazy"
-          onLoad={() => setIsLoaded(true)}
-        />
+            <img
+              src={getOptimizedImageUrl(media.key)}
+              alt={media.fileName}
+              className={`w-full h-full object-cover transition-all duration-1000 ${
+                isLoaded ? "opacity-100" : "opacity-0"
+              } ${isSelected ? "scale-105" : "group-hover:scale-110"}`}
+              loading="lazy"
+              onLoad={() => setIsLoaded(true)}
+            />
+          </>
+        )}
 
         {isSelected && (
           <div className="absolute inset-0 bg-primary/10 flex items-center justify-center backdrop-blur-[1px]">
@@ -97,6 +118,13 @@ const InsertModalInternal: React.FC<InsertModalProps> = ({
   const [inputUrl, setInputUrl] = useState(initialUrl);
   const [selectedMedia, setSelectedMedia] = useState<MediaAsset | null>(null);
 
+  const pickerKind =
+    activeType === "AUDIO"
+      ? "audio"
+      : activeType === "VIDEO"
+        ? "video"
+        : "image";
+
   const {
     mediaItems,
     searchQuery,
@@ -105,7 +133,7 @@ const InsertModalInternal: React.FC<InsertModalProps> = ({
     hasMore,
     isLoadingMore,
     isPending,
-  } = useMediaPicker();
+  } = useMediaPicker(pickerKind);
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -184,14 +212,18 @@ const InsertModalInternal: React.FC<InsertModalProps> = ({
       >
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-border/50 bg-muted/5">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-8 h-8 border border-border bg-background text-foreground">
-              {activeType === "LINK" ? (
-                <LinkIcon size={14} />
-              ) : (
-                <ImageIcon size={14} />
-              )}
-            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-8 h-8 border border-border bg-background text-foreground">
+                {activeType === "LINK" ? (
+                  <LinkIcon size={14} />
+                ) : activeType === "AUDIO" ? (
+                  <Music size={14} />
+                ) : activeType === "VIDEO" ? (
+                  <Film size={14} />
+                ) : (
+                  <ImageIcon size={14} />
+                )}
+              </div>
             <div className="flex flex-col">
               <span className="text-xs uppercase tracking-widest font-mono text-muted-foreground leading-none mb-1">
                 COMMAND
@@ -213,7 +245,7 @@ const InsertModalInternal: React.FC<InsertModalProps> = ({
         </div>
 
         <div className="flex flex-col flex-1 overflow-hidden min-h-0 bg-background">
-          {activeType === "IMAGE" && (
+          {activeType !== "LINK" && (
             <div className="flex flex-col flex-1 min-h-0">
               {/* Search Bar */}
               <div className="relative shrink-0 border-b border-border/50">
